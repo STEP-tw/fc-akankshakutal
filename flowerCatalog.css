@@ -1,0 +1,16 @@
+h1 {
+  color: orange;
+  text-align: right;
+  margin-right: 50px;
+  border-bottom: 1px solid black;
+}
+.main {
+  display: flex;
+  justify-content: space-around;
+}
+.freshorigins {
+  display: inline-block;
+}
+.links {
+  margin-top: 300px;
+}
