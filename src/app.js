@@ -6,18 +6,17 @@ const send = function(res, content, statusCode = 200) {
   res.end();
 };
 
+const getFilePath = function(url) {
+  if (url == "/") return "./index.html";
+  return "." + url;
+};
+
 const app = (req, res) => {
-  let url = req.url;
-  if (req.url == "/") {
-    url = "/index.html";
-  }
-  if (req.url === "/favicon.ico") {
-    res.end();
-    return;
-  }
-  fs.readFile(`.${url}`, (err, data) => {
+  const url = getFilePath(req.url);
+  fs.readFile(`${url}`, (err, data) => {
     if (err) {
       send(res, "Not Found", 404);
+      return;
     }
     send(res, data);
   });
