@@ -1,4 +1,4 @@
-h1 {
+.flowerCatalog {
   color: orange;
   text-align: right;
   margin-right: 50px;
@@ -10,6 +10,20 @@ h1 {
 .freshorigins {
   display: inline-block;
 }
+
 .links {
   margin-top: 300px;
+}
+
+.header {
+  color: orange;
+  text-align: center;
+}
+
+.button {
+  font-size: 20px;
+  border-radius: 5px;
+}
+table {
+  font-size: 30px;
 }
