@@ -13,7 +13,7 @@ const getFilePath = function(url) {
   return "./publicHtml" + url;
 };
 
-const readFile = (req, res) => {
+const renderContents = (req, res) => {
   const url = getFilePath(req.url);
   fs.readFile(`${url}`, (err, data) => {
     if (err) {
@@ -35,10 +35,10 @@ const readArgs = content => {
   return args;
 };
 
-const appendContent = function(content) {
-  fs.appendFile("data.txt", content, function(err) {
+const appendContent = function(req, res) {
+  fs.appendFile("data.txt", JSON.stringify(req.body), function(err) {
     if (err) throw err;
-    console.log(content);
+    console.log("Saved");
   });
 };
 
@@ -47,13 +47,29 @@ const readBody = (req, res, next) => {
   req.on("data", chunk => (content += chunk));
   req.on("end", () => {
     content = readArgs(content);
-    appendContent(JSON.stringify(content));
+    req.body = content;
     next();
   });
 };
 
+const appendToHtml = function(req, res) {
+  let contents = "";
+  fs.readFile("./publicHtml/guestBook.html", function(err, data) {
+    if (err) throw err;
+    contents = data;
+  });
+  fs.readFile("data.txt", function(err, data) {
+    if (err) throw err;
+    contents = data;
+  });
+  console.log(contents);
+  send(res, contents);
+};
+
 app.use(readBody);
-app.use(readFile);
+app.post("/guestBook", appendContent);
+app.get("/guestBook", appendToHtml);
+app.use(renderContents);
 
 // Export a function that can act as a handler
 
