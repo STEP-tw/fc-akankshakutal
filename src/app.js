@@ -35,11 +35,21 @@ const readArgs = content => {
   return args;
 };
 
-const appendContent = function(req, res) {
-  fs.appendFile("data.txt", JSON.stringify(req.body), function(err) {
+const appendContent = function(commentData, req, res) {
+  fs.appendFile("./data.json", JSON.stringify(commentData) + ",", function(
+    err
+  ) {
     if (err) throw err;
     console.log("Saved");
   });
+};
+
+const postContent = function(req, res, next) {
+  const commentData = req.body;
+  const date = new Date().toLocaleString();
+  commentData.date = date;
+  appendContent(commentData, req, res);
+  next();
 };
 
 const readBody = (req, res, next) => {
@@ -52,23 +62,41 @@ const readBody = (req, res, next) => {
   });
 };
 
-const appendToHtml = function(req, res) {
-  let contents = "";
-  fs.readFile("./publicHtml/guestBook.html", function(err, data) {
-    if (err) throw err;
-    contents = data;
+const generateHTML = function(contents) {
+  contents = JSON.parse(contents);
+  let html = "<table>";
+  for (const content of contents) {
+    html += `<tr><td>${content.date}_</td><td>${content.name}_</td><td>${
+      content.comment
+    }</td></tr>`;
+  }
+  return html + "</table>";
+};
+
+const render = function(req, res) {
+  fs.readFile("./data.json", (err, data) => {
+    const commentsData = JSON.parse("[" + data.slice(0, -1) + "]");
+    let upperPart = "";
+    fs.readFile("./publicHtml/guestBook.html", (err, data) => {
+      if (err) throw err;
+      upperPart += data;
+      let lowerPart = JSON.stringify(commentsData);
+      lowerPart = generateHTML(lowerPart);
+      send(res, upperPart + lowerPart, 200);
+    });
   });
-  fs.readFile("data.txt", function(err, data) {
-    if (err) throw err;
-    contents = data;
-  });
-  console.log(contents);
-  send(res, contents);
+};
+
+const logRequest = (req, res, next) => {
+  console.log(req.method, req.url);
+  next();
 };
 
 app.use(readBody);
-app.post("/guestBook", appendContent);
-app.get("/guestBook", appendToHtml);
+app.use(logRequest);
+app.get("/guestBook.html", render);
+app.post("/guestBook.html", postContent);
+app.post("/guestBook.html", render);
 app.use(renderContents);
 
 // Export a function that can act as a handler
