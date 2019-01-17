@@ -1,4 +1,6 @@
 const fs = require("fs");
+const Express = require("./express.js");
+const app = new Express();
 
 const send = function(res, content, statusCode = 200) {
   res.statusCode = statusCode;
@@ -11,7 +13,7 @@ const getFilePath = function(url) {
   return "./publicHtml" + url;
 };
 
-const app = (req, res) => {
+const readFile = (req, res) => {
   const url = getFilePath(req.url);
   fs.readFile(`${url}`, (err, data) => {
     if (err) {
@@ -22,6 +24,8 @@ const app = (req, res) => {
   });
 };
 
+app.use(readFile);
+
 // Export a function that can act as a handler
 
-module.exports = app;
+module.exports = app.handleRequest.bind(app);
