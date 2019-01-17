@@ -24,6 +24,35 @@ const readFile = (req, res) => {
   });
 };
 
+const readArgs = content => {
+  let args = {};
+  const splitKeyValue = pair => pair.split("=");
+  const assignKeyValueToArgs = ([key, value]) => (args[key] = value);
+  content
+    .split("&")
+    .map(splitKeyValue)
+    .forEach(assignKeyValueToArgs);
+  return args;
+};
+
+const appendContent = function(content) {
+  fs.appendFile("data.txt", content, function(err) {
+    if (err) throw err;
+    console.log(content);
+  });
+};
+
+const readBody = (req, res, next) => {
+  let content = "";
+  req.on("data", chunk => (content += chunk));
+  req.on("end", () => {
+    content = readArgs(content);
+    appendContent(JSON.stringify(content));
+    next();
+  });
+};
+
+app.use(readBody);
 app.use(readFile);
 
 // Export a function that can act as a handler
