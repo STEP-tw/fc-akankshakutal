@@ -1,6 +1,7 @@
 const fs = require("fs");
 const Express = require("./express.js");
 const app = new Express();
+const comments = require("../data.json");
 
 const send = function(res, content, statusCode = 200) {
   res.statusCode = statusCode;
@@ -36,11 +37,9 @@ const readArgs = content => {
 };
 
 const appendContent = function(commentData, req, res) {
-  fs.appendFile("./data.json", JSON.stringify(commentData) + ",", function(
-    err
-  ) {
-    if (err) throw err;
-    console.log("Saved");
+  comments.push(commentData);
+  fs.writeFile("./data.json", JSON.stringify(comments), err => {
+    if (err) console.log(err);
   });
 };
 
@@ -49,7 +48,7 @@ const postContent = function(req, res, next) {
   const date = new Date().toLocaleString();
   commentData.date = date;
   appendContent(commentData, req, res);
-  next();
+  render(req, res);
 };
 
 const readBody = (req, res, next) => {
@@ -75,7 +74,8 @@ const generateHTML = function(contents) {
 
 const render = function(req, res) {
   fs.readFile("./data.json", (err, data) => {
-    const commentsData = JSON.parse("[" + data.slice(0, -1) + "]");
+    console.log(data.toString());
+    const commentsData = JSON.parse(data);
     let upperPart = "";
     fs.readFile("./publicHtml/guestBook.html", (err, data) => {
       if (err) throw err;
@@ -96,7 +96,7 @@ app.use(readBody);
 app.use(logRequest);
 app.get("/guestBook.html", render);
 app.post("/guestBook.html", postContent);
-app.post("/guestBook.html", render);
+// app.post("/guestBook.html", render);
 app.use(renderContents);
 
 // Export a function that can act as a handler
