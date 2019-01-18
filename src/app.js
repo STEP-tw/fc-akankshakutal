@@ -5,7 +5,7 @@ const decodingKeys = require("./decoding.json");
 let comments;
 
 const readComments = function(req, res, next) {
-  fs.readFile("./data.json", (err, data) => {
+  fs.readFile("./src/comments.json", (err, data) => {
     comments = JSON.parse(data);
     next();
   });
@@ -46,7 +46,7 @@ const readArgs = content => {
 
 const appendContent = function(commentData, req, res) {
   comments.push(commentData);
-  fs.writeFile("./data.json", JSON.stringify(comments), err => {
+  fs.writeFile("./src/comments.json", JSON.stringify(comments), err => {
     if (err) console.log(err);
     render(req, res);
   });
@@ -88,7 +88,7 @@ const generateHTML = function(contents) {
 };
 
 const render = function(req, res) {
-  fs.readFile("./data.json", (err, data) => {
+  fs.readFile("./src/comments.json", (err, data) => {
     console.log(data.toString());
     const commentsData = JSON.parse(data);
     let upperPart = "";
