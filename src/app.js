@@ -17,12 +17,17 @@ const send = function(res, content, statusCode = 200) {
   res.end();
 };
 
-const getFilePath = function(url) {
-  if (url == "/") return "./publicHtml/index.html";
-  return "./publicHtml" + url;
+const createPrefixPath = prefix => {
+  return url => prefix + url;
 };
 
-const renderContents = (req, res) => {
+const getFilePath = function(url) {
+  if (url == "/") return "./publicHtml/index.html";
+  const addPrefix = createPrefixPath("./publicHtml");
+  return addPrefix(url);
+};
+
+const serveFile = (req, res) => {
   const url = getFilePath(req.url);
   fs.readFile(`${url}`, (err, data) => {
     if (err) {
@@ -45,10 +50,10 @@ const readArgs = content => {
 };
 
 const appendContent = function(commentData, req, res) {
-  comments.push(commentData);
+  comments.unshift(commentData);
   fs.writeFile("./src/comments.json", JSON.stringify(comments), err => {
     if (err) console.log(err);
-    render(req, res);
+    renderGuestBook(req, res);
   });
 };
 
@@ -77,25 +82,24 @@ const readBody = (req, res, next) => {
   });
 };
 
-const generateHTML = function(contents) {
-  let html = "<table>";
-  for (const content of contents) {
-    html += `<tr><td>${content.date}_</td><td>${content.name}_</td><td>${
+const generateCommentTable = function(contents) {
+  let table = "<table id='comment'>";
+  let tr = contents.map(content => {
+    return `<tr><td>${content.date}</td><td>${content.name}</td><td>${
       content.comment
     }</td></tr>`;
-  }
-  return html + "</table>";
+  });
+  return table + tr.join("") + "</table>";
 };
 
-const render = function(req, res) {
+const renderGuestBook = function(req, res) {
   fs.readFile("./src/comments.json", (err, data) => {
     console.log(data.toString());
     const commentsData = JSON.parse(data);
-    let upperPart = "";
     fs.readFile("./publicHtml/guestBook.html", (err, data) => {
       if (err) throw err;
-      upperPart += data;
-      lowerPart = generateHTML(commentsData);
+      const upperPart = data;
+      const lowerPart = generateCommentTable(commentsData);
       send(res, upperPart + lowerPart, 200);
     });
   });
@@ -109,9 +113,9 @@ const logRequest = (req, res, next) => {
 app.use(readBody);
 app.use(logRequest);
 app.use(readComments);
-app.get("/guestBook.html", render);
+app.get("/guestBook.html", renderGuestBook);
 app.post("/guestBook.html", postContent);
-app.use(renderContents);
+app.use(serveFile);
 
 // Export a function that can act as a handler
 

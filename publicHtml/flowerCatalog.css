@@ -32,11 +32,13 @@ table {
 .image {
   margin: 10px;
   border: 1px solid black;
-  height: 600px;
-  width: 600px;
 }
 
 .menu {
   display: flex;
   word-wrap: break-word;
+}
+
+#comment {
+  width: 1000px;
 }
