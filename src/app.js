@@ -5,7 +5,10 @@ const decodingKeys = require("./decoding.json");
 let comments;
 
 const readComments = function(req, res, next) {
-  fs.readFile("./src/comments.json", (err, data) => {
+  if (!fs.existsSync("./private/comments.json")) {
+    fs.writeFileSync("./private/comments.json", "[]", "utf-8");
+  }
+  fs.readFile("./private/comments.json", (err, data) => {
     comments = JSON.parse(data);
     next();
   });
@@ -51,7 +54,7 @@ const readArgs = content => {
 
 const appendContent = function(commentData, req, res) {
   comments.unshift(commentData);
-  fs.writeFile("./src/comments.json", JSON.stringify(comments), err => {
+  fs.writeFile("./private/comments.json", JSON.stringify(comments), err => {
     if (err) console.log(err);
     renderGuestBook(req, res);
   });
@@ -93,8 +96,7 @@ const generateCommentTable = function(contents) {
 };
 
 const renderGuestBook = function(req, res) {
-  fs.readFile("./src/comments.json", (err, data) => {
-    console.log(data.toString());
+  fs.readFile("./private/comments.json", (err, data) => {
     const commentsData = JSON.parse(data);
     fs.readFile("./publicHtml/guestBook.html", (err, data) => {
       if (err) throw err;
