@@ -112,9 +112,15 @@ const logRequest = (req, res, next) => {
   next();
 };
 
+const handleCommentsReq = function(req, res, next) {
+  let comments = fs.readFileSync("./private/comments.json");
+  send(res, comments.toString());
+};
+
 app.use(readBody);
 app.use(logRequest);
 app.use(readComments);
+app.get("/comments", handleCommentsReq);
 app.get("/guestBook.html", renderGuestBook);
 app.post("/guestBook.html", postContent);
 app.use(serveFile);
