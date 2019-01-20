@@ -1,20 +1,25 @@
 const fs = require("fs");
 const Express = require("./express.js");
-const app = new Express();
+const {
+  COMMENTS_FILE,
+  ENCODING,
+  HOMEDIR,
+  HOMEPAGE
+} = require("./constants.js");
 const decodingKeys = require("./decoding.json");
-let comments;
+const app = new Express();
 
 const readComments = function(req, res, next) {
-  if (!fs.existsSync("./private/comments.json")) {
-    fs.writeFileSync("./private/comments.json", "[]", "utf-8");
+  if (!fs.existsSync(COMMENTS_FILE)) {
+    fs.writeFileSync(COMMENTS_FILE, "[]", ENCODING);
   }
-  fs.readFile("./private/comments.json", (err, data) => {
+  fs.readFile(COMMENTS_FILE, (err, data) => {
     comments = JSON.parse(data);
     next();
   });
 };
 
-const send = function(res, content, statusCode = 200) {
+const send = function(res, statusCode, content) {
   res.statusCode = statusCode;
   res.write(content);
   res.end();
@@ -25,8 +30,8 @@ const createPrefixPath = prefix => {
 };
 
 const getFilePath = function(url) {
-  if (url == "/") return "./publicHtml/index.html";
-  const addPrefix = createPrefixPath("./publicHtml");
+  if (url == "/") return HOMEPAGE;
+  const addPrefix = createPrefixPath(HOMEDIR);
   return addPrefix(url);
 };
 
@@ -37,7 +42,7 @@ const serveFile = (req, res) => {
       send(res, "Not Found", 404);
       return;
     }
-    send(res, data);
+    send(res, 200, data);
   });
 };
 
@@ -54,7 +59,7 @@ const readArgs = content => {
 
 const appendContent = function(commentData, req, res) {
   comments.unshift(commentData);
-  fs.writeFile("./private/comments.json", JSON.stringify(comments), err => {
+  fs.writeFile(COMMENTS_FILE, JSON.stringify(comments), err => {
     if (err) console.log(err);
     renderGuestBook(req, res);
   });
@@ -85,24 +90,24 @@ const readBody = (req, res, next) => {
   });
 };
 
+const createCommentsSection = function({ date, name, comment }) {
+  return `<p>${date}: <strong>${name}</strong> : ${comment}</p>`;
+};
+
 const generateCommentTable = function(contents) {
-  let table = "<table id='comment'>";
-  let tr = contents.map(content => {
-    return `<tr><td>${content.date}</td><td>${content.name}</td><td>${
-      content.comment
-    }</td></tr>`;
-  });
-  return table + tr.join("") + "</table>";
+  let html = contents.map(content => createCommentsSection(content));
+  return html.join("");
 };
 
 const renderGuestBook = function(req, res) {
-  fs.readFile("./private/comments.json", (err, data) => {
+  fs.readFile(COMMENTS_FILE, (err, data) => {
     const commentsData = JSON.parse(data);
+    let comments = generateCommentTable(commentsData);
+    comments = decodeText(comments);
     fs.readFile("./publicHtml/guestBook.html", (err, data) => {
       if (err) throw err;
-      const upperPart = data;
-      const lowerPart = generateCommentTable(commentsData);
-      send(res, upperPart + lowerPart, 200);
+      let guestBook = data.toString().replace("#####", comments);
+      send(res, 200, guestBook);
     });
   });
 };
@@ -112,9 +117,9 @@ const logRequest = (req, res, next) => {
   next();
 };
 
-const handleCommentsReq = function(req, res, next) {
-  let comments = fs.readFileSync("./private/comments.json");
-  send(res, comments.toString());
+const handleCommentsReq = function(req, res) {
+  let comments = fs.readFileSync(COMMENTS_FILE);
+  send(res, 200, comments.toString());
 };
 
 app.use(readBody);
