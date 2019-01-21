@@ -4,14 +4,14 @@ const hide = function() {
   setTimeout(() => (waterCan.style.visibility = "visible"), 1000);
 };
 
-const generateCommentTable = function(contents) {
-  let table = "<table id='comment'>";
-  let tr = contents.map(content => {
-    return `<tr><td>${content.date}</td><td>${content.name}</td><td>${
-      content.comment
-    }</td></tr>`;
-  });
-  return table + tr.join("") + "</table>";
+const createCommentsSection = function({ date, name, comment }) {
+  let localTimeDetails = new Date(date).toLocaleString();
+  return `<p>${localTimeDetails}: <strong>${name}</strong> : ${comment}</p>`;
+};
+
+const generateCommentHtml = function(contents) {
+  let html = contents.map(content => createCommentsSection(content));
+  return html.join("");
 };
 
 const addComments = function() {
@@ -21,6 +21,6 @@ const addComments = function() {
     })
     .then(function(comments) {
       let commentsDiv = document.getElementById("comments");
-      commentsDiv.innerHTML = generateCommentTable(comments);
+      commentsDiv.innerHTML = generateCommentHtml(comments);
     });
 };
