@@ -14,10 +14,9 @@ const readComments = function(req, res, next) {
   if (!fs.existsSync(COMMENTS_FILE)) {
     fs.writeFileSync(COMMENTS_FILE, "[]", ENCODING);
   }
-  fs.readFile(COMMENTS_FILE, (err, data) => {
-    comments = JSON.parse(data);
-    next();
-  });
+  let commentData = fs.readFileSync(COMMENTS_FILE, ENCODING);
+  comments = JSON.parse(commentData);
+  next();
 };
 
 const send = function(res, statusCode, content) {
@@ -58,7 +57,7 @@ const readArgs = content => {
   return args;
 };
 
-const writeContent = function(commentData, req, res) {
+const writeContent = function(req, res, commentData) {
   comments.unshift(commentData);
   fs.writeFile(COMMENTS_FILE, JSON.stringify(comments), err => {
     if (err) console.log(err);
@@ -67,19 +66,17 @@ const writeContent = function(commentData, req, res) {
 };
 
 const decodeText = content => {
-  let result = content;
-  Object.keys(decodingKeys).forEach(x => {
-    result = result.replace(new RegExp(`\\${x}`, "g"), decodingKeys[x]);
-  });
-  return result;
+  return Object.keys(decodingKeys).reduce((content, key) => {
+    return content.replace(new RegExp(`\\${key}`, "g"), decodingKeys[key]);
+  }, content);
 };
 
 const postContent = function(req, res, next) {
   let commentData = decodeText(req.body);
   commentData = readArgs(commentData);
-  const date = new Date().toLocaleString();
+  const date = new Date();
   commentData.date = date;
-  writeContent(commentData, req, res);
+  writeContent(req, res, commentData);
 };
 
 const readBody = (req, res, next) => {
@@ -92,7 +89,8 @@ const readBody = (req, res, next) => {
 };
 
 const createCommentsSection = function({ date, name, comment }) {
-  return `<p>${date}: <strong>${name}</strong> : ${comment}</p>`;
+  let localTimeDetails = new Date(date).toLocaleString();
+  return `<p>${localTimeDetails}: <strong>${name}</strong> : ${comment}</p>`;
 };
 
 const generateCommentTable = function(contents) {

@@ -1,0 +1,7 @@
+##app.js
+1.line10:decoding can be simpler..refer to uridecode or escape/unescape
+2.line14:you dont have to check the existence of file if you use append/not sure about write.
+3.line 52,53:functions can be outside.
+4.line 61:order of args can be reviewed.
+5.line 69:no need.
+6.line 50:readArgs is taking contents,should be reading ,can be reviewed.
