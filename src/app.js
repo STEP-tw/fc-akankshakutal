@@ -7,7 +7,6 @@ const {
   HOMEPAGE,
   GUESTBOOKPAGE
 } = require("./constants.js");
-const decodingKeys = require("./decoding.json");
 const app = new Express();
 
 const readComments = function(req, res, next) {
@@ -65,14 +64,9 @@ const writeContent = function(req, res, commentData) {
   });
 };
 
-const decodeText = content => {
-  return Object.keys(decodingKeys).reduce((content, key) => {
-    return content.replace(new RegExp(`\\${key}`, "g"), decodingKeys[key]);
-  }, content);
-};
-
-const postContent = function(req, res, next) {
-  let commentData = decodeText(req.body);
+const postContent = function(req, res) {
+  let commentData = unescape(req.body);
+  commentData = commentData.replace(/\+/g, " ");
   commentData = readArgs(commentData);
   const date = new Date();
   commentData.date = date;
@@ -102,7 +96,7 @@ const renderGuestBook = function(req, res) {
   fs.readFile(COMMENTS_FILE, (err, data) => {
     const commentsData = JSON.parse(data);
     let comments = generateCommentTable(commentsData);
-    comments = decodeText(comments);
+    comments = unescape(comments);
     fs.readFile(GUESTBOOKPAGE, (err, data) => {
       if (err) throw err;
       let guestBook = data.toString().replace("#####", comments);
