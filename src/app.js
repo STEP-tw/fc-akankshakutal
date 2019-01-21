@@ -4,7 +4,8 @@ const {
   COMMENTS_FILE,
   ENCODING,
   HOMEDIR,
-  HOMEPAGE
+  HOMEPAGE,
+  GUESTBOOKPAGE
 } = require("./constants.js");
 const decodingKeys = require("./decoding.json");
 const app = new Express();
@@ -39,7 +40,7 @@ const serveFile = (req, res) => {
   const url = getFilePath(req.url);
   fs.readFile(`${url}`, (err, data) => {
     if (err) {
-      send(res, "Not Found", 404);
+      send(res, 404, "Not Found");
       return;
     }
     send(res, 200, data);
@@ -57,7 +58,7 @@ const readArgs = content => {
   return args;
 };
 
-const appendContent = function(commentData, req, res) {
+const writeContent = function(commentData, req, res) {
   comments.unshift(commentData);
   fs.writeFile(COMMENTS_FILE, JSON.stringify(comments), err => {
     if (err) console.log(err);
@@ -78,7 +79,7 @@ const postContent = function(req, res, next) {
   commentData = readArgs(commentData);
   const date = new Date().toLocaleString();
   commentData.date = date;
-  appendContent(commentData, req, res);
+  writeContent(commentData, req, res);
 };
 
 const readBody = (req, res, next) => {
@@ -104,7 +105,7 @@ const renderGuestBook = function(req, res) {
     const commentsData = JSON.parse(data);
     let comments = generateCommentTable(commentsData);
     comments = decodeText(comments);
-    fs.readFile("./publicHtml/guestBook.html", (err, data) => {
+    fs.readFile(GUESTBOOKPAGE, (err, data) => {
       if (err) throw err;
       let guestBook = data.toString().replace("#####", comments);
       send(res, 200, guestBook);
