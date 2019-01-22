@@ -35,15 +35,13 @@ const getFilePath = function(url) {
 
 const serveFile = (req, res) => {
   const url = getFilePath(req.url);
-  fs.readFile(`${url}`, (err, data) => {
+  fs.readFile(url, (err, data) => {
+    let fileExtension = getFileExtension(url);
+    let contentType = resolveMIMEType(fileExtension);
     if (err) {
-      let fileExtension = getFileExtension(`${url}`);
-      let contentType = resolveMIMEType(fileExtension);
       send(res, 404, "Not Found", contentType);
       return;
     }
-    let fileExtension = getFileExtension(`${url}`);
-    let contentType = resolveMIMEType(fileExtension);
     send(res, 200, data, contentType);
   });
 };
@@ -90,18 +88,8 @@ const readBody = (req, res, next) => {
   });
 };
 
-const createCommentsSection = function({ date, name, comment }) {
-  let localTimeDetails = new Date(date).toLocaleString();
-  return `<p class='comments'>${localTimeDetails}: <strong>${name}</strong> : ${comment}</p>`;
-};
-
-const generateCommentHtml = function(contents) {
-  let html = contents.map(content => createCommentsSection(content));
-  return html.join("");
-};
-
 const renderGuestBook = function(req, res) {
-  let commentData = generateCommentHtml(comments.getComments());
+  let commentData = comments.toHTML();
   commentData = unescape(commentData);
   fs.readFile(GUESTBOOKPAGE, (err, data) => {
     if (err) throw err;

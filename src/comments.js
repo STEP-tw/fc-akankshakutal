@@ -23,6 +23,18 @@ class Comments {
     this.userComments.unshift(comment);
     this.writeCommentsToFile();
   }
+
+  createCommentsSection({ date, name, comment }) {
+    let localTimeDetails = new Date(date).toLocaleString();
+    return `<p class='comments'>${localTimeDetails}: <strong>${name}</strong> : ${comment}</p>`;
+  }
+
+  toHTML() {
+    return this.userComments.reduce((html, comment) => {
+      html += this.createCommentsSection(comment);
+      return html;
+    }, "");
+  }
 }
 
 module.exports = Comments;
