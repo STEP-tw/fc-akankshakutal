@@ -11,8 +11,7 @@ class Comments {
   }
 
   readComments() {
-    const data = fs.readFileSync(COMMENTS_FILE, ENCODING);
-    // this.userComments = data; ///JSON.parse(data);
+    fs.readFileSync(COMMENTS_FILE, ENCODING);
   }
 
   writeCommentsToFile() {

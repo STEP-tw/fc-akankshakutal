@@ -1,6 +1,12 @@
 const fs = require("fs");
 const Express = require("./express.js");
-const { HOMEDIR, HOMEPAGE, GUESTBOOKPAGE } = require("./constants.js");
+const {
+  HOMEDIR,
+  HOMEPAGE,
+  GUESTBOOKPAGE,
+  MIME_TEXT_PLAIN,
+  MIME_TYPES
+} = require("./constants.js");
 const Comments = require("./comments.js");
 let comments = new Comments();
 const app = new Express();
@@ -10,10 +16,9 @@ const loadUserComments = () => {
   comments.readComments();
 };
 
-const send = function(res, statusCode, content) {
+const send = function(res, statusCode, content, contentType) {
+  res.setHeader("Content-Type", contentType);
   res.statusCode = statusCode;
-  console.log(typeof content);
-
   res.write(content);
   res.end();
 };
@@ -32,11 +37,23 @@ const serveFile = (req, res) => {
   const url = getFilePath(req.url);
   fs.readFile(`${url}`, (err, data) => {
     if (err) {
-      send(res, 404, "Not Found");
+      let fileExtension = getFileExtension(`${url}`);
+      let contentType = resolveMIMEType(fileExtension);
+      send(res, 404, "Not Found", contentType);
       return;
     }
-    send(res, 200, data);
+    let fileExtension = getFileExtension(`${url}`);
+    let contentType = resolveMIMEType(fileExtension);
+    send(res, 200, data, contentType);
   });
+};
+
+const resolveMIMEType = function(fileExtension) {
+  return MIME_TYPES[fileExtension] || MIME_TEXT_PLAIN;
+};
+
+const getFileExtension = function(fileName) {
+  return fileName.split(".").pop();
 };
 
 const readArgs = content => {
@@ -75,7 +92,7 @@ const readBody = (req, res, next) => {
 
 const createCommentsSection = function({ date, name, comment }) {
   let localTimeDetails = new Date(date).toLocaleString();
-  return `<p>${localTimeDetails}: <strong>${name}</strong> : ${comment}</p>`;
+  return `<p class='comments'>${localTimeDetails}: <strong>${name}</strong> : ${comment}</p>`;
 };
 
 const generateCommentHtml = function(contents) {
@@ -89,7 +106,9 @@ const renderGuestBook = function(req, res) {
   fs.readFile(GUESTBOOKPAGE, (err, data) => {
     if (err) throw err;
     let guestBook = data.toString().replace("#####", commentData);
-    send(res, 200, guestBook);
+    let fileExtension = getFileExtension(GUESTBOOKPAGE);
+    let contentType = resolveMIMEType(fileExtension);
+    send(res, 200, guestBook, contentType);
   });
 };
 
@@ -99,8 +118,7 @@ const logRequest = (req, res, next) => {
 };
 
 const handleCommentsReq = function(req, res) {
-  console.log(comments.getComments());
-  send(res, 200, JSON.stringify(comments.getComments()));
+  send(res, 200, JSON.stringify(comments.getComments()), MIME_TYPES["json"]);
 };
 
 loadUserComments();

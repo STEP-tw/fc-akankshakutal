@@ -38,3 +38,7 @@ table {
   display: flex;
   word-wrap: break-word;
 }
+
+.comments {
+  font-size: 30px;
+}

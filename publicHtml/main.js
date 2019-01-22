@@ -6,7 +6,7 @@ const hide = function() {
 
 const createCommentsSection = function({ date, name, comment }) {
   let localTimeDetails = new Date(date).toLocaleString();
-  return `<p>${localTimeDetails}: <strong>${name}</strong> : ${comment}</p>`;
+  return `<p class='comments'>${localTimeDetails}: <strong>${name}</strong> : ${comment}</p>`;
 };
 
 const generateCommentHtml = function(contents) {
