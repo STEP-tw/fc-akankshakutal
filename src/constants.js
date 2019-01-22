@@ -4,6 +4,8 @@ const HOMEPAGE = "./publicHtml/index.html";
 const HOMEDIR = "./publicHtml";
 const GUESTBOOKPAGE = "./publicHtml/guestBook.html";
 const MIME_TEXT_PLAIN = "text/plain";
+const COMMENTS_PLACEHOLDER = "#####";
+const NOTFOUND = "not found";
 const MIME_TYPES = {
   css: "text/css",
   html: "text/html",
@@ -26,6 +28,8 @@ module.exports = {
   HOMEPAGE,
   HOMEDIR,
   GUESTBOOKPAGE,
+  COMMENTS_PLACEHOLDER,
   MIME_TEXT_PLAIN,
-  MIME_TYPES
+  MIME_TYPES,
+  NOTFOUND
 };

@@ -6,7 +6,9 @@ const {
   HOMEPAGE,
   GUESTBOOKPAGE,
   MIME_TEXT_PLAIN,
-  MIME_TYPES
+  MIME_TYPES,
+  COMMENTS_PLACEHOLDER,
+  NOTFOUND
 } = require("./constants.js");
 const Comments = require("./comments.js");
 let comments = new Comments(COMMENTS_FILE);
@@ -39,7 +41,7 @@ const serveFile = (req, res) => {
     let fileExtension = getFileExtension(url);
     let contentType = resolveMIMEType(fileExtension);
     if (err) {
-      send(res, 404, "Not Found", contentType);
+      send(res, 404, NOTFOUND, contentType);
       return;
     }
     send(res, 200, data, contentType);
@@ -90,8 +92,11 @@ const readBody = (req, res, next) => {
 const renderGuestBook = function(req, res) {
   let commentHTML = comments.toHTML();
   fs.readFile(GUESTBOOKPAGE, (err, data) => {
-    if (err) throw err;
-    let guestBook = data.toString().replace("#####", commentHTML);
+    if (err) {
+      send(res, 404, NOTFOUND, contentType);
+      return;
+    }
+    let guestBook = data.toString().replace(COMMENTS_PLACEHOLDER, commentHTML);
     let fileExtension = getFileExtension(GUESTBOOKPAGE);
     let contentType = resolveMIMEType(fileExtension);
     send(res, 200, guestBook, contentType);
