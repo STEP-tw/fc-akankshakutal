@@ -65,35 +65,33 @@ const readArgs = content => {
   return args;
 };
 
-const writeContent = function(req, res, commentData) {
-  comments.addComment(commentData);
+const writeComment = function(req, res, comment) {
+  comments.addComment(comment);
   renderGuestBook(req, res);
 };
 
-const postContent = function(req, res) {
-  let commentData = unescape(req.body);
-  commentData = commentData.replace(/\+/g, " ");
-  commentData = readArgs(commentData);
+const postComment = function(req, res) {
+  let comment = req.body.replace(/\+/g, " ");
+  comment = readArgs(comment);
   const date = new Date();
-  commentData.date = date;
-  writeContent(req, res, commentData);
+  comment.date = date;
+  writeComment(req, res, comment);
 };
 
 const readBody = (req, res, next) => {
   let content = "";
   req.on("data", chunk => (content += chunk));
   req.on("end", () => {
-    req.body = content;
+    req.body = unescape(content);
     next();
   });
 };
 
 const renderGuestBook = function(req, res) {
-  commentData = unescape(commentData);
-  let commentData = comments.toHTML();
+  let commentHTML = comments.toHTML();
   fs.readFile(GUESTBOOKPAGE, (err, data) => {
     if (err) throw err;
-    let guestBook = data.toString().replace("#####", commentData);
+    let guestBook = data.toString().replace("#####", commentHTML);
     let fileExtension = getFileExtension(GUESTBOOKPAGE);
     let contentType = resolveMIMEType(fileExtension);
     send(res, 200, guestBook, contentType);
@@ -120,7 +118,7 @@ app.use(readBody);
 app.use(logRequest);
 app.get("/comments", handleCommentsReq);
 app.get("/guestBook.html", renderGuestBook);
-app.post("/guestBook.html", postContent);
+app.post("/guestBook.html", postComment);
 app.use(serveFile);
 
 // Export a function that can act as a handler
