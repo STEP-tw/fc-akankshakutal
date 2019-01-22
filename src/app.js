@@ -1,6 +1,7 @@
 const fs = require("fs");
 const Express = require("./express.js");
 const {
+  COMMENTS_FILE,
   HOMEDIR,
   HOMEPAGE,
   GUESTBOOKPAGE,
@@ -8,11 +9,10 @@ const {
   MIME_TYPES
 } = require("./constants.js");
 const Comments = require("./comments.js");
-let comments = new Comments();
+let comments = new Comments(COMMENTS_FILE);
 const app = new Express();
 
 const loadUserComments = () => {
-  comments.writeCommentsToFile();
   comments.readComments();
 };
 
@@ -89,8 +89,8 @@ const readBody = (req, res, next) => {
 };
 
 const renderGuestBook = function(req, res) {
-  let commentData = comments.toHTML();
   commentData = unescape(commentData);
+  let commentData = comments.toHTML();
   fs.readFile(GUESTBOOKPAGE, (err, data) => {
     if (err) throw err;
     let guestBook = data.toString().replace("#####", commentData);
@@ -106,7 +106,12 @@ const logRequest = (req, res, next) => {
 };
 
 const handleCommentsReq = function(req, res) {
-  send(res, 200, JSON.stringify(comments.getComments()), MIME_TYPES["json"]);
+  send(
+    res,
+    200,
+    JSON.stringify(comments.getComments()),
+    resolveMIMEType("json")
+  );
 };
 
 loadUserComments();

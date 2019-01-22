@@ -1,9 +1,10 @@
 const fs = require("fs");
-const { COMMENTS_FILE, ENCODING } = require("./constants");
+const { ENCODING } = require("./constants");
 
 class Comments {
-  constructor() {
+  constructor(fileName) {
     this.userComments = [];
+    this.fileName = fileName;
   }
 
   getComments() {
@@ -11,12 +12,15 @@ class Comments {
   }
 
   readComments() {
-    fs.readFileSync(COMMENTS_FILE, ENCODING);
+    if (!fs.existsSync(this.fileName)) {
+      fs.writeFileSync(this.fileName, "[]", "utf-8");
+    }
+    let data = fs.readFileSync(this.fileName, ENCODING);
+    this.userComments = JSON.parse(data);
   }
 
   writeCommentsToFile() {
-    if (!fs.existsSync(COMMENTS_FILE)) fs.writeFileSync(COMMENTS_FILE, "[]");
-    fs.writeFile(COMMENTS_FILE, JSON.stringify(this.userComments), err => {});
+    fs.writeFile(this.fileName, JSON.stringify(this.userComments), err => {});
   }
 
   addComment(comment) {
