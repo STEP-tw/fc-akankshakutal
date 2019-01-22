@@ -9,9 +9,11 @@ const createCommentsSection = function({ date, name, comment }) {
   return `<p class='comments'>${localTimeDetails}: <strong>${name}</strong> : ${comment}</p>`;
 };
 
-const generateCommentHtml = function(contents) {
-  let html = contents.map(content => createCommentsSection(content));
-  return html.join("");
+const generateCommentHtml = function(comments) {
+  return comments.reduce((html, comment) => {
+    html += createCommentsSection(comment);
+    return html;
+  }, "");
 };
 
 const addComments = function() {
