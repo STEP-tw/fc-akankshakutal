@@ -16,7 +16,7 @@ class Comments {
       fs.writeFileSync(this.fileName, "[]", "utf-8");
     }
     let data = fs.readFileSync(this.fileName, ENCODING);
-    this.userComments = JSON.parse(data);
+    // this.userComments = JSON.parse(data);
   }
 
   writeCommentsToFile() {
