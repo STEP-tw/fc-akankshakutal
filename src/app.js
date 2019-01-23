@@ -2,24 +2,28 @@ const fs = require("fs");
 const Express = require("./express.js");
 const {
   COMMENTS_FILE,
+  ENCODING,
   HOMEDIR,
   HOMEPAGE,
   GUESTBOOKPAGE,
   MIME_TEXT_PLAIN,
   MIME_TYPES,
-  NOTFOUND
+  NOTFOUND,
+  USERIDS,
+  SESSIONS
 } = require("./constants.js");
 const Comments = require("./comments.js");
 let comments = new Comments(COMMENTS_FILE);
 const app = new Express();
 
 const GuestBook = require("./guestBook.js");
-let guestBook = fs.readFileSync(GUESTBOOKPAGE, "utf8");
+let guestBook = fs.readFileSync(GUESTBOOKPAGE, ENCODING);
+let guestBookTemplate = new GuestBook(guestBook, comments);
 
-let userIDs = fs.readFileSync("./private/userIDs.json", "utf8");
+let userIDs = fs.readFileSync(USERIDS, ENCODING);
 userIDs = JSON.parse(userIDs);
 
-let sessions = fs.readFileSync("./private/sessions.json", "utf8");
+let sessions = fs.readFileSync(SESSIONS, ENCODING);
 sessions = JSON.parse(sessions);
 
 const createUserIDCookie = function(res) {
@@ -36,7 +40,7 @@ const updateUserIDs = function(req) {
   let userID = getUserID(req);
   if (!userIDs.includes(userID)) {
     userIDs.push(userID);
-    fs.writeFile("./private/userIDs.json", JSON.stringify(userIDs), () => {});
+    fs.writeFile(USERIDS, JSON.stringify(userIDs), () => {});
   }
 };
 
@@ -111,7 +115,7 @@ const writeComment = function(req, res, comment) {
 
 const postComment = function(req, res) {
   let userID = getUserID(req);
-  let userName = sessions[userID];
+  let userName = sessions[userID].replace(/\+/g, " ");
   let comment = req.body.replace(/\+/g, " ");
   comment = readArgs(comment);
   const date = new Date();
@@ -125,8 +129,6 @@ const readBody = (req, res, next) => {
   req.on("data", chunk => (content += chunk));
   req.on("end", () => {
     req.body = unescape(content);
-    console.log(req.body);
-
     next();
   });
 };
@@ -134,31 +136,32 @@ const readBody = (req, res, next) => {
 const renderGuestBook = function(req, res) {
   let userID = getUserID(req);
   let userName = sessions[userID];
-  let guestBookForm = new GuestBook(guestBook, comments);
-  guestBookForm = guestBookForm.withLogInForm();
+  guestBookForm = guestBookTemplate.withLogInForm();
   if (userName != undefined) {
-    guestBookForm = new GuestBook(guestBook, comments);
-    guestBookForm = guestBookForm.withCommentForm(userName);
+    guestBookForm = guestBookTemplate.withCommentForm(userName);
   }
-  send(res, 200, guestBookForm, "javascript");
+  send(res, 200, guestBookForm, "html");
 };
 
 const login = function(req, res) {
   let userName = readArgs(req.body).name;
   let userID = getUserID(req);
   sessions[userID] = userName;
-  fs.writeFile("./private/sessions.json", JSON.stringify(sessions), () => {
-    let guestBookForm = new GuestBook(guestBook, comments);
-    send(res, 200, guestBookForm.afterLogIn(userName), "javascript");
+  fs.writeFile(SESSIONS, JSON.stringify(sessions), () => {
+    send(
+      res,
+      200,
+      guestBookTemplate.afterLogIn(userName),
+      resolveMIMEType("html")
+    );
   });
 };
 
 const logout = function(req, res) {
   let userID = getUserID(req);
   sessions[userID] = undefined;
-  fs.writeFile("./private/data/sessions.json", JSON.stringify(sessions), () => {
-    let guestBookForm = new GuestBook(guestBook, comments);
-    send(res, 200, guestBookForm.afterLogOut(), "javascript");
+  fs.writeFile(SESSIONS, JSON.stringify(sessions), () => {
+    send(res, 200, guestBookTemplate.afterLogOut(), resolveMIMEType("html"));
   });
 };
 
@@ -184,7 +187,7 @@ app.get("/comments", handleCommentsReq);
 app.get("/guestBook.html", renderGuestBook);
 app.post("/guestBook.html", postComment);
 app.post("/login", login);
-app.post("/logOut", logout);
+app.post("/logout", logout);
 app.use(serveFile);
 
 // Export a function that can act as a handler

@@ -7,8 +7,7 @@ class GuestBook {
   }
 
   addComments() {
-    let commentsList = this.comments;
-    return this.guestBook.replace("#####", JSON.stringify(commentsList));
+    return this.guestBook.replace("#comment#", this.comments.toHTML());
   }
 
   addLogInForm(guestBook) {
@@ -21,26 +20,22 @@ class GuestBook {
 
   withLogInForm() {
     let guestBook = this.addComments();
-    guestBook = this.addLogInForm(guestBook);
-    return guestBook.replace("#message#", "");
+    return this.addLogInForm(guestBook);
   }
 
   withCommentForm(userName) {
     let guestBook = this.addComments();
-    guestBook = this.addCommentForm(guestBook, userName);
-    return guestBook.replace("#message#", "");
+    return this.addCommentForm(guestBook, userName);
   }
 
   afterLogIn(userName) {
     let guestBook = this.addComments();
-    guestBook = this.addCommentForm(guestBook, userName);
-    return guestBook;
+    return this.addCommentForm(guestBook, userName);
   }
 
   afterLogOut() {
     let guestBook = this.addComments();
-    guestBook = this.addLogInForm(guestBook);
-    return guestBook;
+    return this.addLogInForm(guestBook);
   }
 }
 

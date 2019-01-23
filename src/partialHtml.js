@@ -11,7 +11,7 @@ Name:
   commentForm: function(name) {
     return `
 	<h2>Leave a comment</h2>
-	<form action="/logOut" method="POST">
+	<form action="/logout" method="POST">
 		Name: ${name}
 		<input type="submit" value="Logout">
 		</form>
